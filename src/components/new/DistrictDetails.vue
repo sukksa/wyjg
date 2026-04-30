@@ -4,65 +4,43 @@
       <div class="modal-header">
         <div class="title-box">
           <img class="icon-arrow" src="@/assets/popupicon.png" />
-          <span class="title-text">{{ district.mainName }}</span>
+          <span class="title-text">{{ district.districtName }}</span>
         </div>
         <div class="close-btn" @click="handleClose">×</div>
       </div>
 
-      <div
-        class="modal-body"
-        v-loading="loading"
-        element-loading-background="rgba(2, 17, 50,1)"
-      >
-        <div class="info-stats-bar">
+      <div class="modal-body" v-loading="loading" element-loading-background="rgba(2, 17, 50,1)">
+        <!-- <div class="info-stats-bar">
           <p>
             年均处理规模：<span class="highlight-cyan">{{
               info.YearProcess
             }}</span>
           </p>
-          <!-- <p>
+          <p>
             占地面积：<span class="highlight-cyan">{{ info.Area }}</span>
-          </p> -->
+          </p>
           <p>
             地址：<span>{{ district.addr }}</span>
           </p>
-        </div>
+        </div> -->
 
-        <div class="section-title">所属农机</div>
+        <!-- <div class="section-title">所属农机</div>
         <div class="machinery-tags">
-          <div
-            v-for="(item, index) in machinery"
-            :key="index"
-            class="machine-tag"
-          >
+          <div v-for="(item, index) in machinery" :key="index" class="machine-tag">
             <img :src="item.icon" class="tag-icon" />
             <span class="tag-name">{{ item.name }}</span>
             <span class="tag-count">总共{{ item.count }}</span>
           </div>
-        </div>
+        </div> -->
 
         <div class="section-title">简介：</div>
         <p class="intro-text">
-          {{ district.intro || "暂无简介" }}
+          {{ district.intro || '暂无简介' }}
         </p>
-        <template
-          v-if="
-            district.fileHost && district.filePath && district.enterpriseImg
-          "
-        >
+        <template v-if="district.imgs?.length > 0">
           <div class="section-title">现场图片：</div>
           <div class="photo-gallery">
-            <img
-              :src="
-                district.fileHost +
-                '/' +
-                district.filePath +
-                '/' +
-                district.enterpriseImg
-              "
-              class="site-img"
-              alt="现场图片"
-            />
+            <img v-for="img in district.imgs" :key="img.uid" :src="img.url" class="site-img" alt="现场图片" />
           </div>
         </template>
       </div>
@@ -71,18 +49,18 @@
 </template>
 
 <script>
-import { getMainExtById, getMainList } from "../../api/dataService";
-import claw from "@/assets/icons/claw.png";
-import feeder from "@/assets/icons/feeder.png";
-import loader from "@/assets/icons/loader.png";
-import grinder from "@/assets/icons/grinder.png";
-import tractor from "@/assets/icons/tractor.png";
-import { districtGetDistrictById } from "@/api/homeApi";
+import { getMainById, getMainExtById, getMainList } from '../../api/dataService'
+import claw from '@/assets/icons/claw.png'
+import feeder from '@/assets/icons/feeder.png'
+import loader from '@/assets/icons/loader.png'
+import grinder from '@/assets/icons/grinder.png'
+import tractor from '@/assets/icons/tractor.png'
+import { districtGetDistrictById, districtGetDistrictList } from '@/api/homeApi'
 export default {
-  name: "DistrictDetails",
+  name: 'DistrictDetails',
   props: {
     visibles: { type: Boolean, default: false },
-    code: { type: String, default: "51102401" },
+    code: { type: String, default: '51102401' },
   },
   data() {
     return {
@@ -93,89 +71,70 @@ export default {
       loader,
       grinder,
       tractor,
-      machinery: [
-        // { name: '粉碎机', count: 1, icon: require('@/assets/icons/claw.png') },
-        // { name: '运输带', count: 2, icon: require('@/assets/icons/feeder.png') },
-        // { name: '侧段上料机', count: 1, icon: require('@/assets/icons/loader.png') },
-        // { name: '打捆机', count: 2, icon: require('@/assets/icons/loader.png') },
-        // { name: '打包机', count: 1, icon: require('@/assets/icons/loader.png') },
-      ],
+      machinery: [],
       district: {},
-    };
+    }
   },
   methods: {
     handleClose() {
-      this.$emit("close");
+      this.$emit('close')
     },
     getMainExtById() {
       let param = {
         id: this.district.id,
-      };
-      getMainExtById(param).then((res) => {
-        this.loading = false;
-        let info = {};
-        let machinery = [];
+      }
+      getMainExtById(param).then(res => {
+        this.loading = false
+        let info = {}
+        let machinery = []
         res.data?.extJson?.forEach((item, index) => {
-          if (item.itemCode == "YearProcess" || item.itemCode == "Area") {
-            info[item.itemCode] = item.itemValue;
+          if (item.itemCode == 'YearProcess' || item.itemCode == 'Area') {
+            info[item.itemCode] = item.itemValue
           } else {
-            if (item.itemValue != "") {
-              let icon = "";
-              if (
-                item.itemCode == "ExtBigCrusher" ||
-                item.itemCode == "ExtCrusher"
-              ) {
-                icon = this.claw;
-              } else if (item.itemCode == "ExtShearingSectionFeeder") {
-                icon = this.feeder;
-              } else if (
-                item.itemCode == "ExtConveyorBelt" ||
-                item.itemCode == "ExtPartitionedHopper"
-              ) {
-                icon = this.loader;
-              } else if (item.itemCode == "ExtBalerMachine") {
-                icon = this.grinder;
-              } else if (
-                item.itemCode == "ExtBigPackingMachine" ||
-                item.itemCode == "ExtMediumPackingMachine"
-              ) {
-                icon = this.tractor;
+            if (item.itemValue != '') {
+              let icon = ''
+              if (item.itemCode == 'ExtBigCrusher' || item.itemCode == 'ExtCrusher') {
+                icon = this.claw
+              } else if (item.itemCode == 'ExtShearingSectionFeeder') {
+                icon = this.feeder
+              } else if (item.itemCode == 'ExtConveyorBelt' || item.itemCode == 'ExtPartitionedHopper') {
+                icon = this.loader
+              } else if (item.itemCode == 'ExtBalerMachine') {
+                icon = this.grinder
+              } else if (item.itemCode == 'ExtBigPackingMachine' || item.itemCode == 'ExtMediumPackingMachine') {
+                icon = this.tractor
               }
-              item.icon = icon;
+              item.icon = icon
               machinery.push({
                 name: item.itemName,
                 count: item.itemValue,
                 icon: item.icon,
-              });
+              })
             }
           }
-        });
-        this.info = info;
-        this.machinery = machinery;
-      });
+        })
+        this.info = info
+        this.machinery = machinery
+      })
     },
     fetchData() {
-      this.loading = true;
-      getMainList({
-        mainType: "MAIN_TYPE_STORAGE",
-        num: 20,
-        isPreciseArea: true,
-      }).then((res) => {
-        this.district = res.data.find(
-          (item) => item.areaId == this.$props.code,
-        );
-        this.getMainExtById();
-      });
+      this.loading = true
+
+      districtGetDistrictList().then(res => {
+        this.district = res.data.find(item => item.districtCode == this.$props.code)
+        this.loading = false
+        // this.getMainExtById()
+      })
     },
   },
   watch: {
     visibles(newVal) {
       if (newVal) {
-        this.fetchData();
+        this.fetchData()
       }
     },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped>
@@ -199,9 +158,6 @@ export default {
   box-shadow: 0 0 20px rgba(7, 87, 219, 0.5);
   padding: 12px 30px;
   position: relative;
-  min-height: 600px;
-  max-height: 800px;
-  overflow-y: auto;
 }
 
 /* 头部样式 */
@@ -237,6 +193,11 @@ export default {
       transform: scale(1.2);
     }
   }
+}
+.modal-body {
+  min-height: 560px;
+  max-height: 700px;
+  overflow-y: auto;
 }
 
 /* 信息条样式 */
@@ -297,9 +258,13 @@ export default {
 
 .photo-gallery {
   margin-top: 15px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 1000px;
   .site-img {
-    height: 280px;
-    max-width: 45%;
+    height: 300px;
+    width: 100%;
   }
 }
 </style>
