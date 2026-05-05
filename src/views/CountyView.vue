@@ -457,20 +457,19 @@ export default {
               realColor = '#2B96F1'
             }
 
-            type = items.zuo_wu_ming_cheng
-            num = items.yu_ji_jie_gan_chan_liang
-            areaN = items.zhong_zhi_mian_ji
+            // type = items.zuo_wu_ming_cheng
+            // num = items.yu_ji_jie_gan_chan_liang
+            // areaN = items.zhong_zhi_mian_ji
           })
-
           that.towmMap.set(item.areaName, {
             code: item.id,
             path: area.path[0].map(val => {
               return new BMapGL.Point(val[0], val[1])
             }),
             color: realColor,
-            type: type,
-            num: num,
-            areaN: areaN,
+            type: res.data.find(r=> r.area_id == item.id)?.zuo_wu_ming_cheng,
+            num:  res.data.find(r=> r.area_id == item.id)?.yu_ji_jie_gan_chan_liang,
+            areaN:  res.data.find(r=> r.area_id == item.id)?.zhong_zhi_mian_ji,
             // geometryCenter: new BMapGL.Point(
             //   item.areaCenter ? item.areaCenter[1] : null,
             //   item.areaCenter ? item.areaCenter[0] : null,
